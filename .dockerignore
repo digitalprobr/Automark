@@ -1,0 +1,14 @@
+.git
+node_modules
+dist
+venv
+.venv
+__pycache__
+*.pyc
+storage/inputs
+storage/outputs
+storage/logos
+storage/*.mp4
+storage/*.webp
+package-lock.json
+npm-debug.log

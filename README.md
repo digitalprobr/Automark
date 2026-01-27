@@ -31,3 +31,20 @@ Add watermark to vertical videos (TikTok-style), one-by-one or in bulk.
 - Keep `node_modules` and large media out of commits; add files to `.gitignore` as needed.
 
 If you want, I can clean the repository history to remove large files and node_modules — say the word and I will prepare safe steps.
+
+## Docker
+
+You can build and run the project with Docker and docker-compose. This repository contains `backend/Dockerfile`, `frontend/Dockerfile` and `docker-compose.yml`.
+
+Build and run (from repo root):
+```bash
+docker-compose build
+docker-compose up -d
+```
+
+- Backend will be available at `http://localhost:8000`
+- Frontend (built site) will be available at `http://localhost:3000`
+
+Notes:
+- The `storage/` directory is mounted into the backend container so media persists on the host.
+- The `.dockerignore` prevents large files (node_modules, storage media) from being copied into the images during build.
