@@ -128,3 +128,42 @@ Below are several deployment options (development, Docker, and a simple producti
 		 git push --force
 		 ```
 	 - If you want me to prepare a step-by-step script for history cleanup, say so — do not run these commands until you are ready to rewrite history.
+
+	## Deploy to Coolify (step-by-step)
+
+	Prerequisites:
+	- Repository is pushed to GitHub (or a Git provider Coolify can access).
+	- A Coolify instance is available and you can add applications.
+
+	Frontend (Vite static site)
+	1. In Coolify UI: Add Application -> connect your Git provider -> select repository and branch (e.g., `main`).
+	2. Choose the Static site / Vite option (see Coolify docs: https://coolify.io/docs/applications/vite).
+	3. Set build settings:
+		- Build command: `npm ci && npm run build`
+		- Publish directory: `dist`
+	4. Add environment variable:
+		- `VITE_API_URL` = `https://<your-backend-domain>/api` (set after backend deploy or use Coolify internal URL)
+	5. Deploy; Coolify will build the frontend and publish the static site with HTTPS.
+
+	Backend (FastAPI using `backend/Dockerfile`) — recommended
+	1. In Coolify UI: Add Application -> repository -> branch.
+	2. Choose the Dockerfile option and set:
+		- Build context: project root (.)
+		- Dockerfile path: `backend/Dockerfile`
+	3. Environment variables (example):
+		- `STORAGE_DIR=/app/storage`
+		- any other secrets your app needs
+	4. Add a persistent volume in Coolify: map a managed volume to `/app/storage` so `inputs`/`outputs` persist.
+	5. Deploy. Coolify will build the image and run the container (it will proxy the app for you).
+
+	Notes about `ffmpeg` and system deps:
+	- If your watermarking uses `ffmpeg` (likely), ensure the backend image installs `ffmpeg` (e.g., `apt-get install -y ffmpeg`) — add it to `backend/Dockerfile` before `pip install` or use a base image with ffmpeg included.
+
+	After both apps are deployed
+	- Set `VITE_API_URL` in the frontend app to the backend URL exposed by Coolify (or a custom domain). Re-deploy frontend so the built bundle contains the correct API URL.
+	- Verify by visiting the frontend domain and testing an upload. Check backend logs in Coolify for errors.
+
+	Tips
+	- Use Coolify environment secrets for sensitive values.
+	- Make the `storage/` volume large enough and back it up regularly.
+	- Video processing is CPU-heavy — choose appropriate instance resources or scale workers.
