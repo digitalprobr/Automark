@@ -17,7 +17,8 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 # Thread pool for parallel video processing
-MAX_WORKERS = min(os.cpu_count() or 2, 4)  # Limit to 4 concurrent videos
+# Use a conservative number of workers (roughly half of CPUs, capped)
+MAX_WORKERS = min(4, max(1, (os.cpu_count() or 2) // 2))
 executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
 
 
@@ -110,41 +111,41 @@ def upload_and_create_jobs(
 ):
     try:
         base_dir = Path(settings.storage_dir)
-    input_dir = base_dir / "inputs"
-    logo_dir = base_dir / "logos"
-    output_dir = base_dir / "outputs"
+        input_dir = base_dir / "inputs"
+        logo_dir = base_dir / "logos"
+        output_dir = base_dir / "outputs"
 
-    input_dir.mkdir(parents=True, exist_ok=True)
-    logo_dir.mkdir(parents=True, exist_ok=True)
-    output_dir.mkdir(parents=True, exist_ok=True)
+        input_dir.mkdir(parents=True, exist_ok=True)
+        logo_dir.mkdir(parents=True, exist_ok=True)
+        output_dir.mkdir(parents=True, exist_ok=True)
 
         logo_path = logo_dir / logo.filename
         with logo_path.open("wb") as buffer:
             shutil.copyfileobj(logo.file, buffer)
 
-    job_statuses: list[JobStatus] = []
-    for video in videos:
-        video_path = input_dir / video.filename
-        with video_path.open("wb") as buffer:
-            shutil.copyfileobj(video.file, buffer)
+        job_statuses: list[JobStatus] = []
+        for video in videos:
+            video_path = input_dir / video.filename
+            with video_path.open("wb") as buffer:
+                shutil.copyfileobj(video.file, buffer)
 
-        job = create_job(video.filename, logo.filename, str(video_path), str(logo_path), position, scale)
-        update_job_status(job.id, "queued")
-        # Submit to thread pool for parallel processing (multiple videos at once)
-        executor.submit(process_job, job.id, str(output_dir))
+            job = create_job(video.filename, logo.filename, str(video_path), str(logo_path), position, scale)
+            update_job_status(job.id, "queued")
+            # Submit to thread pool for parallel processing (multiple videos at once)
+            executor.submit(process_job, job.id, str(output_dir))
 
-        job_statuses.append(
-            JobStatus(
-                id=job.id,
-                status=job.status,
-                input_name=job.input_name,
-                logo_name=job.logo_name,
-                position=job.position,
-                scale=job.scale,
-                output_name=job.output_name,
-                progress=job.progress,
+            job_statuses.append(
+                JobStatus(
+                    id=job.id,
+                    status=job.status,
+                    input_name=job.input_name,
+                    logo_name=job.logo_name,
+                    position=job.position,
+                    scale=job.scale,
+                    output_name=job.output_name,
+                    progress=job.progress,
+                )
             )
-        )
 
         return job_statuses
     except Exception as e:
