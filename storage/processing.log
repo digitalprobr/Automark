@@ -2,3 +2,7 @@
 [2026-01-26 21:45:55] Job f47fc384-5202-4ae3-829a-3a90c7307375: Loading video storage\inputs\studio_19.mp4
 [2026-01-26 21:47:53] Job f47fc384-5202-4ae3-829a-3a90c7307375: Watermark applied, progress to 90%
 [2026-01-26 21:47:53] Job f47fc384-5202-4ae3-829a-3a90c7307375: COMPLETED - Output: studio_19_20260126_214557_marked.mp4
+[2026-01-26 22:57:54] Starting job 8ab00c5c-885e-478a-bed1-ceb3ffa88971: storage\inputs\vid1.mp4 with storage\logos\eyJidWNrZXQiOiJ3YXZlc3BlZWQtaW50ZXJuYWwtdXciLCJrZXkiOiJtZWRpYS9mOTc1M2JmMDZiZmE0MDZmYmJlYWNlYWQ0ZWRiNTA2OS9pbWFnZXMvMTc2NjU3NTE2NjQ5NTE4OTg3OF9HT1dRWTZlbS5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsiaGV.webp
+[2026-01-26 22:57:54] Job 8ab00c5c-885e-478a-bed1-ceb3ffa88971: Loading video storage\inputs\vid1.mp4
+[2026-01-26 23:00:02] Job 8ab00c5c-885e-478a-bed1-ceb3ffa88971: Watermark applied, progress to 90%
+[2026-01-26 23:00:02] Job 8ab00c5c-885e-478a-bed1-ceb3ffa88971: COMPLETED - Output: vid1_20260126_225757_marked.mp4
