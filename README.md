@@ -114,6 +114,17 @@ Below are several deployment options (development, Docker, and a simple producti
 		 - `storage/inputs`, `storage/logos`, `storage/outputs` — make writable by the backend process or container.
 	 - Secure uploads: consider limiting accepted file types, sizes, and scanning files in production.
 
+	- FFMPEG threads control:
+		- The backend supports an environment variable `FFMPEG_THREADS` to control how many threads ffmpeg uses per job. In the provided `backend/Dockerfile` and `docker-compose.yml` the default is set to `2`.
+		- Set `FFMPEG_THREADS` to a small number (1-4) depending on your host CPU and number of concurrent jobs. Lower values increase job concurrency; higher values can speed up a single job but reduce parallelism.
+		- Example (docker-compose override):
+			```yaml
+			services:
+			  backend:
+			    environment:
+			      - FFMPEG_THREADS=2
+			```
+
 6) Backups & maintenance
 	 - Backup `storage/outputs` if outputs are important.
 	 - Rotate logs and periodically clean `storage/inputs` and `storage/outputs` as appropriate.
