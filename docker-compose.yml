@@ -11,6 +11,7 @@ services:
       - ./storage:/app/storage
     environment:
       - STORAGE_DIR=/app/storage
+      - FFMPEG_THREADS=2
 
   frontend:
     build:

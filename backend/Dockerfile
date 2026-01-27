@@ -23,6 +23,7 @@ WORKDIR /app
 
 EXPOSE 8000
 
-ENV STORAGE_DIR=/app/storage
+ENV STORAGE_DIR=/app/storage \
+    FFMPEG_THREADS=2
 
 CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
