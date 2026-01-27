@@ -88,6 +88,28 @@ def add_watermark(video_filepath: str, logo_filepath: str, output_dir: Optional[
     else:  # bottom-right
         overlay = f"main_w-overlay_w-{padding_x}:main_h-overlay_h-{padding_y}"
 
+    # Prepare cached scaled logo to avoid re-scaling the same logo repeatedly
+    logo_path = Path(logo_filepath)
+    cache_dir = Path(os.environ.get("STORAGE_DIR", "storage")) / "logos" / "cache"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cached_logo = None
+    if position != "full":
+        cached_name = f"{logo_path.stem}_h{logo_h}{logo_path.suffix}"
+        cached_logo_path = cache_dir / cached_name
+        if cached_logo_path.exists():
+            cached_logo = str(cached_logo_path)
+        else:
+            # create scaled logo using ffmpeg (fast)
+            ffmpeg = _which("ffmpeg")
+            if ffmpeg:
+                scale_cmd = [ffmpeg, "-y", "-i", str(logo_path), "-vf", f"scale=-1:{logo_h}", str(cached_logo_path)]
+                try:
+                    subprocess.run(scale_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    cached_logo = str(cached_logo_path)
+                except subprocess.CalledProcessError:
+                    # if scaling fails, fall back to using original logo in filter chain
+                    cached_logo = None
+
     # filter_complex: scale/crop video to 1080x1920, scale logo, overlay
     # First, scale video to cover target area then center-crop
     filter_parts = []
@@ -103,13 +125,27 @@ def add_watermark(video_filepath: str, logo_filepath: str, output_dir: Optional[
 
     filter_complex = ";".join(filter_parts)
 
+    # threads tuning: allow FFMPEG_THREADS env var, otherwise use half cores (min 1)
+    try:
+        env_threads = int(os.environ.get("FFMPEG_THREADS", "0"))
+    except Exception:
+        env_threads = 0
+    if env_threads > 0:
+        threads_arg = ["-threads", str(env_threads)]
+    else:
+        threads_default = max(1, (os.cpu_count() or 1) // 2)
+        threads_arg = ["-threads", str(threads_default)]
+
+    # choose logo input (cached if available)
+    logo_input = str(cached_logo) if cached_logo else str(logo_filepath)
+
     cmd = [
         ffmpeg,
         "-y",
         "-i",
         str(video_filepath),
         "-i",
-        str(logo_filepath),
+        logo_input,
         "-filter_complex",
         filter_complex,
         "-map",
@@ -122,6 +158,7 @@ def add_watermark(video_filepath: str, logo_filepath: str, output_dir: Optional[
         "veryfast",
         "-crf",
         "23",
+        *threads_arg,
         "-c:a",
         "copy",
         str(out_path),
@@ -130,8 +167,17 @@ def add_watermark(video_filepath: str, logo_filepath: str, output_dir: Optional[
     try:
         subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
-        # include stderr for diagnostics
-        err = e.stderr.decode(errors='ignore') if e.stderr else str(e)
+        # include stderr for diagnostics and write to storage/errors.log
+        err = e.stderr.decode(errors="ignore") if e.stderr else str(e)
+        try:
+            errfile = Path(os.environ.get("STORAGE_DIR", "storage")) / "errors.log"
+            errfile.parent.mkdir(parents=True, exist_ok=True)
+            with errfile.open("a", encoding="utf-8") as f:
+                f.write("--- ffmpeg error ---\n")
+                f.write(f"cmd: {shlex.join(cmd)}\n")
+                f.write(err + "\n")
+        except Exception:
+            pass
         raise RuntimeError(f"ffmpeg failed: {err}") from e
 
     return out_path
