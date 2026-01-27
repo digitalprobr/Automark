@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Upload, Video, Image as ImageIcon, Play, Download, Clock, CheckCircle, XCircle, Loader } from "lucide-react";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
+// Prefer an explicit `VITE_API_URL` at build/dev time. When missing,
+// use a relative `/api` path so the app works when served from the
+// same origin (and avoids mixed-content errors if the frontend is HTTPS).
+const API_BASE = import.meta.env.VITE_API_URL || "/api";
 
 const POSITIONS = [
   { value: "top-left", label: "Top Left", icon: "↖" },
@@ -36,7 +39,9 @@ export default function App() {
       const data = await response.json();
       setJobs(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load jobs");
+      const msg = err instanceof Error ? err.message : "Failed to load jobs";
+      console.error("fetchJobs error:", err);
+      setError(msg);
     }
   };
 
