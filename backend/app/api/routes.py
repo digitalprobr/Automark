@@ -2,7 +2,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse
 from pathlib import Path
 import shutil
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 import os
 import logging
 import traceback
@@ -16,10 +16,10 @@ router = APIRouter()
 
 logger = logging.getLogger(__name__)
 
-# Thread pool for parallel video processing
+# Process pool for parallel video processing (better for CPU-bound ffmpeg)
 # Use a conservative number of workers (roughly half of CPUs, capped)
 MAX_WORKERS = min(4, max(1, (os.cpu_count() or 2) // 2))
-executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
+executor = ProcessPoolExecutor(max_workers=MAX_WORKERS)
 
 
 @router.get("/health")
