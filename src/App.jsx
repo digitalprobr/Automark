@@ -22,6 +22,7 @@ export default function App() {
   const [error, setError] = useState("");
   const [position, setPosition] = useState("bottom-right");
   const [scale, setScale] = useState(0.2);
+  const [backendStatus, setBackendStatus] = useState("unknown"); // unknown | up | down
   
   // Preview states
   const [previewVideoUrl, setPreviewVideoUrl] = useState(null);
@@ -51,6 +52,35 @@ export default function App() {
     return () => {
       clearTimeout(timer);
       clearInterval(interval);
+    };
+  }, []);
+
+  // Poll backend health endpoint to display status in the header
+  useEffect(() => {
+    let mounted = true;
+    const check = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/health`);
+        if (!mounted) return;
+        if (res.ok) {
+          const j = await res.json();
+          if (j && j.status === "ok") setBackendStatus("up");
+          else setBackendStatus("down");
+        } else {
+          setBackendStatus("down");
+        }
+      } catch (e) {
+        if (!mounted) return;
+        setBackendStatus("down");
+      }
+    };
+
+    // initial check and interval
+    check();
+    const id = setInterval(check, 5000);
+    return () => {
+      mounted = false;
+      clearInterval(id);
     };
   }, []);
 
@@ -128,7 +158,7 @@ export default function App() {
 
   // Calculate logo position and size for preview
   const getLogoStyle = () => {
-    const styles = { position: "absolute", maxWidth: "100%", maxHeight: "100%", zIndex: 0 };
+    const styles = { position: "absolute", maxWidth: "100%", maxHeight: "100%", zIndex: 0, borderRadius: "0.75rem" };
     
     if (position === "full") {
       return { ...styles, top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover" };
@@ -166,9 +196,16 @@ export default function App() {
                 <h1 className="text-2xl font-bold">Bulk Video Watermarking</h1>
               </div>
             </div>
-            <button className="rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-500/30 transition hover:shadow-cyan-500/50">
-              Upgrade Pro
-            </button>
+            <div className="flex items-center gap-3">
+              <button className="rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-500/30 transition hover:shadow-cyan-500/50">
+                Upgrade Pro
+              </button>
+              <div className="flex items-center">
+                {backendStatus === "unknown" && <Loader className="h-5 w-5 animate-spin text-slate-400" title="Checking backend" />}
+                {backendStatus === "up" && <CheckCircle className="h-5 w-5 text-emerald-400" title="Backend online" />}
+                {backendStatus === "down" && <XCircle className="h-5 w-5 text-red-400" title="Backend offline" />}
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -202,11 +239,27 @@ export default function App() {
                     <Loader className="h-3 w-3 animate-spin" />Processing
                   </div>
                 </div>
-                <div className="rounded-xl bg-slate-950/80 p-4 text-center border border-slate-800">
-                  <div className="mb-2 text-2xl font-bold text-green-400">{completedCount}</div>
-                  <div className="text-xs text-slate-400 flex items-center justify-center gap-1">
-                    <CheckCircle className="h-3 w-3" />Done
-                  </div>
+                <div className="rounded-xl bg-slate-950/80 border border-slate-800 overflow-hidden">
+                  <label className="group relative flex cursor-pointer flex-col items-center justify-center h-full p-4 transition hover:bg-slate-900/50">
+                    {logo ? (
+                      <div className="flex flex-col items-center gap-2">
+                        {previewLogoUrl ? (
+                          <img src={previewLogoUrl} alt="Logo preview" className="h-16 w-16 object-contain rounded-lg border border-slate-700" />
+                        ) : (
+                          <ImageIcon className="h-8 w-8 text-cyan-400" />
+                        )}
+                        <span className="text-xs text-slate-300 truncate max-w-full px-2">{logo.name}</span>
+                        <span className="text-xs text-slate-500">{(logo.size / 1024).toFixed(1)} KB</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2">
+                        <ImageIcon className="h-8 w-8 text-slate-600 group-hover:text-cyan-400 transition" />
+                        <span className="text-xs font-semibold text-slate-400 group-hover:text-cyan-400 transition text-center">Click to select logo</span>
+                        <span className="text-xs text-slate-600">PNG recommended</span>
+                      </div>
+                    )}
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => setLogo(e.target.files?.[0] || null)} />
+                  </label>
                 </div>
               </div>
               <button onClick={handleSubmit} disabled={!canSubmit || isSubmitting} className="w-full rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-4 text-base font-bold text-white shadow-lg shadow-cyan-500/30 transition hover:shadow-cyan-500/50 disabled:cursor-not-allowed disabled:from-slate-700 disabled:to-slate-700 disabled:shadow-none disabled:text-slate-400">
@@ -243,26 +296,6 @@ export default function App() {
                     </div>
                   ))}
                   {files.length > 3 && <div className="text-center text-xs text-slate-500 py-2">+{files.length - 3} more files</div>}
-                </div>
-              )}
-            </div>
-
-            <div className="rounded-2xl border border-slate-800/50 bg-slate-900/40 backdrop-blur-xl p-6 shadow-2xl">
-              <h3 className="mb-4 text-lg font-bold flex items-center gap-2">
-                <ImageIcon className="h-5 w-5 text-cyan-400" />
-                Upload Logo
-              </h3>
-              <label className="group relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-700 bg-slate-950/50 p-8 transition hover:border-cyan-500 hover:bg-slate-950">
-                <ImageIcon className="h-10 w-10 text-slate-600 group-hover:text-cyan-400 transition mb-3" />
-                <span className="text-sm font-semibold text-slate-300 group-hover:text-cyan-400 transition">Click to select logo</span>
-                <span className="mt-1 text-xs text-slate-500">PNG with transparency recommended</span>
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => setLogo(e.target.files?.[0] || null)} />
-              </label>
-              {logo && (
-                <div className="mt-4 flex items-center gap-3 rounded-lg bg-slate-800/50 px-3 py-2">
-                  <ImageIcon className="h-4 w-4 text-cyan-400 flex-shrink-0" />
-                  <span className="text-sm text-slate-300 truncate flex-1">{logo.name}</span>
-                  <span className="text-xs text-slate-500">{(logo.size / 1024).toFixed(1)} KB</span>
                 </div>
               )}
             </div>
@@ -361,60 +394,82 @@ export default function App() {
         {jobs.length > 0 && (
           <div className="mt-8">
             <h2 className="mb-6 text-2xl font-bold">Recent Jobs</h2>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {jobs.map((job) => (
-                <div key={job.id} className="group rounded-xl border border-slate-800/50 bg-slate-900/40 backdrop-blur-xl p-5 shadow-lg transition hover:border-slate-700">
-                  <div className="mb-3 flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="truncate font-semibold text-slate-200">{job.input_name}</h4>
-                      <p className="mt-1 text-xs text-slate-500">Logo: {job.logo_name}</p>
-                    </div>
-                    <span className={`ml-2 flex-shrink-0 rounded-full px-3 py-1 text-xs font-bold ${
-                      job.status === "processing" ? "bg-blue-500/20 text-blue-300" : job.status === "completed" ? "bg-green-500/20 text-green-300" : job.status === "failed" ? "bg-red-500/20 text-red-300" : "bg-yellow-500/20 text-yellow-300"
-                    }`}>{job.status}</span>
-                  </div>
-                  {job.status === "processing" && (
-                    <div className="space-y-2">
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
-                        <div 
-                          className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-300" 
-                          style={{ width: `${job.progress || 0}%` }}
-                        ></div>
-                      </div>
-                      <p className="text-xs text-blue-400 flex items-center gap-2">
-                        <Loader className="h-3 w-3 animate-spin" />
-                        Processing video... {job.progress || 0}%
-                      </p>
-                    </div>
-                  )}
-                  {job.status === "completed" && (
-                    <div className="space-y-3">
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
-                        <div className="h-full w-full rounded-full bg-gradient-to-r from-green-500 to-emerald-500"></div>
-                      </div>
-                      <a href={`${API_BASE}/jobs/${job.id}/download`} download className="flex items-center justify-center gap-2 rounded-lg bg-green-500/20 px-4 py-2 text-sm font-semibold text-green-300 border border-green-500/30 transition hover:bg-green-500/30">
-                        <Download className="h-4 w-4" />Download
-                      </a>
-                    </div>
-                  )}
-                  {job.status === "queued" && (
-                    <div className="space-y-2">
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
-                        <div className="h-full w-1/12 rounded-full bg-yellow-500/50"></div>
-                      </div>
-                      <p className="text-xs text-slate-400 flex items-center gap-2"><Clock className="h-3 w-3" />Waiting in queue...</p>
-                    </div>
-                  )}
-                  {job.status === "failed" && (
-                    <div className="space-y-2">
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
-                        <div className="h-full w-full rounded-full bg-red-500"></div>
-                      </div>
-                      <p className="text-xs text-red-400 flex items-center gap-2"><XCircle className="h-3 w-3" />Processing failed</p>
-                    </div>
-                  )}
-                </div>
-              ))}
+            <div className="rounded-2xl border border-slate-800/50 bg-slate-900/40 backdrop-blur-xl overflow-hidden shadow-2xl">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-800/50 bg-slate-950/50">
+                      <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">Name</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">File Size</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">Logo</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">Status</th>
+                      <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-400">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/50">
+                    {jobs.map((job) => (
+                      <tr key={job.id} className="group transition hover:bg-slate-800/30">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <Video className="h-5 w-5 text-cyan-400 flex-shrink-0" />
+                            <span className="font-medium text-slate-200 truncate max-w-xs">{job.input_name}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-slate-400">
+                          {job.file_size ? `${(job.file_size / 1024 / 1024).toFixed(1)} MB` : '-'}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <ImageIcon className="h-4 w-4 text-slate-500 flex-shrink-0" />
+                            <span className="text-sm text-slate-400 truncate max-w-xs">{job.logo_name}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col gap-2">
+                            <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold w-fit ${
+                              job.status === "processing" ? "bg-blue-500/20 text-blue-300" : 
+                              job.status === "completed" ? "bg-green-500/20 text-green-300" : 
+                              job.status === "failed" ? "bg-red-500/20 text-red-300" : 
+                              "bg-yellow-500/20 text-yellow-300"
+                            }`}>
+                              {job.status === "processing" && <Loader className="h-3 w-3 animate-spin" />}
+                              {job.status === "completed" && <CheckCircle className="h-3 w-3" />}
+                              {job.status === "failed" && <XCircle className="h-3 w-3" />}
+                              {job.status === "queued" && <Clock className="h-3 w-3" />}
+                              {job.status}
+                            </span>
+                            {job.status === "processing" && (
+                              <div className="flex items-center gap-2">
+                                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-800 max-w-[150px]">
+                                  <div 
+                                    className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-300" 
+                                    style={{ width: `${job.progress || 0}%` }}
+                                  ></div>
+                                </div>
+                                <span className="text-xs text-blue-400 font-mono">{job.progress || 0}%</span>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          {job.status === "completed" ? (
+                            <a 
+                              href={`${API_BASE}/jobs/${job.id}/download`} 
+                              download 
+                              className="inline-flex items-center gap-2 rounded-lg bg-green-500/20 px-4 py-2 text-sm font-semibold text-green-300 border border-green-500/30 transition hover:bg-green-500/30"
+                            >
+                              <Download className="h-4 w-4" />
+                              Download
+                            </a>
+                          ) : (
+                            <span className="text-xs text-slate-600">-</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}

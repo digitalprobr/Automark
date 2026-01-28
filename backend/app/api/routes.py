@@ -2,7 +2,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse
 from pathlib import Path
 import shutil
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 import os
 import logging
 import traceback
@@ -16,10 +16,10 @@ router = APIRouter()
 
 logger = logging.getLogger(__name__)
 
-# Process pool for parallel video processing (better for CPU-bound ffmpeg)
+# Thread pool for parallel video processing (ffmpeg releases GIL, so threads work well)
 # Use a conservative number of workers (roughly half of CPUs, capped)
 MAX_WORKERS = min(4, max(1, (os.cpu_count() or 2) // 2))
-executor = ProcessPoolExecutor(max_workers=MAX_WORKERS)
+executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
 
 
 @router.get("/health")
@@ -59,6 +59,7 @@ def list_jobs_endpoint():
                 position=j.position,
                 scale=j.scale,
                 progress=j.progress,
+                file_size=j.file_size,
             )
             for j in list_jobs()
         ]
@@ -93,6 +94,7 @@ def get_job_endpoint(job_id: str):
             position=job.position,
             scale=job.scale,
             progress=job.progress,
+            file_size=job.file_size,
         )
     except HTTPException:
         raise
@@ -129,7 +131,10 @@ def upload_and_create_jobs(
             with video_path.open("wb") as buffer:
                 shutil.copyfileobj(video.file, buffer)
 
-            job = create_job(video.filename, logo.filename, str(video_path), str(logo_path), position, scale)
+            # Get file size after writing
+            file_size = video_path.stat().st_size
+
+            job = create_job(video.filename, logo.filename, str(video_path), str(logo_path), position, scale, file_size)
             update_job_status(job.id, "queued")
             # Submit to thread pool for parallel processing (multiple videos at once)
             executor.submit(process_job, job.id, str(output_dir))
@@ -144,6 +149,7 @@ def upload_and_create_jobs(
                     scale=job.scale,
                     output_name=job.output_name,
                     progress=job.progress,
+                    file_size=job.file_size,
                 )
             )
 

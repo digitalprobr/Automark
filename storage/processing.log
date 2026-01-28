@@ -6,3 +6,44 @@
 [2026-01-26 22:57:54] Job 8ab00c5c-885e-478a-bed1-ceb3ffa88971: Loading video storage\inputs\vid1.mp4
 [2026-01-26 23:00:02] Job 8ab00c5c-885e-478a-bed1-ceb3ffa88971: Watermark applied, progress to 90%
 [2026-01-26 23:00:02] Job 8ab00c5c-885e-478a-bed1-ceb3ffa88971: COMPLETED - Output: vid1_20260126_225757_marked.mp4
+[2026-01-27 20:26:22] ERROR: Job 82029f85-e32e-43ba-919b-43546fd3733c not found
+[2026-01-27 20:42:13] Starting job bbb7d2cf-654f-4961-8cbf-fbd56304e6cc: storage\inputs\studio_19.mp4 with storage\logos\ainews.png
+[2026-01-27 20:42:13] Job bbb7d2cf-654f-4961-8cbf-fbd56304e6cc: Loading video storage\inputs\studio_19.mp4
+[2026-01-27 20:42:13] ERROR: Job bbb7d2cf-654f-4961-8cbf-fbd56304e6cc failed: ffmpeg binary not found; please install ffmpeg.
+[2026-01-27 20:42:13] Traceback (most recent call last):
+  File "C:\Users\User\Documents\Projects\2026\APPS\watermark_videos\Automark\backend\app\services\watermark.py", line 53, in process_job
+    output_path = marker.add_watermark(
+        job.input_path,
+    ...<3 lines>...
+        scale=job.scale
+    )
+  File "C:\Users\User\Documents\Projects\2026\APPS\watermark_videos\Automark\marker.py", line 62, in add_watermark
+    raise RuntimeError("ffmpeg binary not found; please install ffmpeg.")
+RuntimeError: ffmpeg binary not found; please install ffmpeg.
+
+[2026-01-27 20:48:38] Starting job 78cb5e35-5598-4210-ab08-5e0a42bfd393: storage\inputs\studio_19.mp4 with storage\logos\ainews.png
+[2026-01-27 20:48:38] Job 78cb5e35-5598-4210-ab08-5e0a42bfd393: Loading video storage\inputs\studio_19.mp4
+[2026-01-27 20:48:46] Job 78cb5e35-5598-4210-ab08-5e0a42bfd393: Watermark applied, progress to 90%
+[2026-01-27 20:48:46] Job 78cb5e35-5598-4210-ab08-5e0a42bfd393: COMPLETED - Output: studio_19_20260127_204838_marked.mp4
+[2026-01-27 20:54:05] Starting job 20d4fc7c-a402-40b1-8f6a-3f91c70cd5f8: storage\inputs\studio_19.mp4 with storage\logos\ainews.png
+[2026-01-27 20:54:05] Job 20d4fc7c-a402-40b1-8f6a-3f91c70cd5f8: Loading video storage\inputs\studio_19.mp4
+[2026-01-27 20:54:05] ERROR: Job 20d4fc7c-a402-40b1-8f6a-3f91c70cd5f8 failed: ffmpeg binary not found; please install ffmpeg.
+[2026-01-27 20:54:05] Traceback (most recent call last):
+  File "C:\Users\User\Documents\Projects\2026\APPS\watermark_videos\Automark\backend\app\services\watermark.py", line 53, in process_job
+    output_path = marker.add_watermark(
+        job.input_path,
+    ...<3 lines>...
+        scale=job.scale
+    )
+  File "C:\Users\User\Documents\Projects\2026\APPS\watermark_videos\Automark\marker.py", line 62, in add_watermark
+    raise RuntimeError("ffmpeg binary not found; please install ffmpeg.")
+RuntimeError: ffmpeg binary not found; please install ffmpeg.
+
+[2026-01-27 20:56:33] Starting job 2d3bd21a-682e-4211-bca8-3c36007dbbc9: storage\inputs\studio_19.mp4 with storage\logos\ainews.png
+[2026-01-27 20:56:33] Job 2d3bd21a-682e-4211-bca8-3c36007dbbc9: Loading video storage\inputs\studio_19.mp4
+[2026-01-27 20:56:40] Job 2d3bd21a-682e-4211-bca8-3c36007dbbc9: Watermark applied, progress to 90%
+[2026-01-27 20:56:40] Job 2d3bd21a-682e-4211-bca8-3c36007dbbc9: COMPLETED - Output: studio_19_20260127_205633_marked.mp4
+[2026-01-27 21:14:16] Starting job 09ea51b4-7872-4dbc-abf5-f5342a6dcad5: storage\inputs\studio_19.mp4 with storage\logos\ainews.png
+[2026-01-27 21:14:16] Job 09ea51b4-7872-4dbc-abf5-f5342a6dcad5: Loading video storage\inputs\studio_19.mp4
+[2026-01-27 21:14:25] Job 09ea51b4-7872-4dbc-abf5-f5342a6dcad5: Watermark applied, progress to 90%
+[2026-01-27 21:14:25] Job 09ea51b4-7872-4dbc-abf5-f5342a6dcad5: COMPLETED - Output: studio_19_20260127_211416_marked.mp4

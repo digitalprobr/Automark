@@ -18,3 +18,4 @@ class JobStatus(BaseModel):
     position: str = "bottom-right"
     scale: float = 0.2
     progress: int = 0  # 0-100 percentage
+    file_size: Optional[int] = None  # file size in bytes

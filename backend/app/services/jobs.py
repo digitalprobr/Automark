@@ -17,12 +17,13 @@ class Job:
     position: str = "bottom-right"
     scale: float = 0.2
     progress: int = 0  # 0-100 percentage
+    file_size: int | None = None  # file size in bytes
 
 
 _jobs: Dict[str, Job] = {}
 
 
-def create_job(input_name: str, logo_name: str, input_path: str, logo_path: str, position: str = "bottom-right", scale: float = 0.2) -> Job:
+def create_job(input_name: str, logo_name: str, input_path: str, logo_path: str, position: str = "bottom-right", scale: float = 0.2, file_size: int | None = None) -> Job:
     job_id = str(uuid.uuid4())
     job = Job(
         id=job_id,
@@ -33,6 +34,7 @@ def create_job(input_name: str, logo_name: str, input_path: str, logo_path: str,
         logo_path=logo_path,
         position=position,
         scale=scale,
+        file_size=file_size,
     )
     _jobs[job_id] = job
     return job

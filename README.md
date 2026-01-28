@@ -1,6 +1,18 @@
 # Automark
 Add watermark to vertical videos (TikTok-style), one-by-one or in bulk.
 
+## Features
+
+- **Bulk video watermarking**: Upload multiple videos and process them in parallel
+- **Real-time job progress**: Monitor video processing with live progress bars and status updates
+- **Backend status indicator**: Visual indicator showing if backend is online/offline
+- **Responsive job table**: View all jobs in a clean, responsive table with Name, File Size, Logo, Status, and Action columns
+- **Logo preview**: See a thumbnail of the selected logo before processing
+- **Rounded watermarks**: Logo watermarks are displayed with rounded corners for a polished look
+- **FFmpeg-powered**: Fast, high-quality video processing using FFmpeg with multi-threaded encoding
+- **Customizable positions**: Place watermark at top-left, top-right, bottom-left, bottom-right, or full-screen
+- **Adjustable scale**: Control logo size relative to video height
+
 ## Quickstart
 
 - Backend (Python/FastAPI)
@@ -9,6 +21,17 @@ Add watermark to vertical videos (TikTok-style), one-by-one or in bulk.
 		python -m venv .venv
 		.venv\Scripts\activate
 		pip install -r requirements.txt
+		```
+	- Ensure FFmpeg is installed on your system:
+		```bash
+		# Windows (via winget)
+		winget install --id=Gyan.FFmpeg -e
+		
+		# macOS (via Homebrew)
+		brew install ffmpeg
+		
+		# Linux (Ubuntu/Debian)
+		sudo apt-get install ffmpeg
 		```
 	- Run the backend (example):
 		```bash
@@ -22,10 +45,34 @@ Add watermark to vertical videos (TikTok-style), one-by-one or in bulk.
 		npm run dev
 		```
 
+## Architecture
+
+### Backend
+- **Framework**: FastAPI with Uvicorn
+- **Video Processing**: FFmpeg via subprocess for optimal performance
+- **Concurrency**: ThreadPoolExecutor for parallel video processing
+- **Job Management**: In-memory job queue with real-time progress tracking
+- **Storage**: Local filesystem (`storage/inputs`, `storage/logos`, `storage/outputs`)
+
+### Frontend
+- **Framework**: React 18 with Vite
+- **Styling**: Tailwind CSS with custom dark theme
+- **Icons**: Lucide React
+- **Real-time Updates**: Polling API endpoints every 5 seconds for job status and backend health
+
+### Key Improvements Made
+- Backend status polling with visual indicator (green/red/spinner)
+- Processing Queue section integrates logo upload as 3rd column
+- Recent Jobs displayed in responsive table format instead of cards
+- Logo thumbnails shown in queue and job table
+- Rounded corners applied to watermark logos in preview and output
+- File size tracking for uploaded videos with automatic formatting
+
 ## Notes
 - Config and storage paths: the app uses `storage/inputs`, `storage/logos` and `storage/outputs` for media.
 - I updated `.gitignore` to avoid committing `node_modules`, virtualenvs and large media files. If you have already committed those (node_modules or media), consider removing them from history with `git rm --cached` or using a history-rewrite tool (be careful).
 - I fixed a backend bug related to the `Job` dataclass (`backend/app/services/jobs.py`) where a duplicate `progress` field caused status updates to misbehave. Restart the backend after pulling.
+- FFmpeg must be installed and available on PATH for video processing to work.
 
 ## Contributing
 - Keep `node_modules` and large media out of commits; add files to `.gitignore` as needed.
@@ -46,12 +93,14 @@ docker-compose up -d
 Notes:
 - The `storage/` directory is mounted into the backend container so media persists on the host.
 - The `.dockerignore` prevents large files (node_modules, storage media) from being copied into the images during build.
+- FFmpeg is pre-installed in the backend Docker image.
 
 ## Deployment — Step by step
 
 Below are several deployment options (development, Docker, and a simple production setup). Choose the one that matches your target environment.
 
 1) Local development (quick)
+	 - Ensure FFmpeg is installed (see Quickstart above)
 	 - Backend:
 		 ```bash
 		 python -m venv .venv
@@ -76,6 +125,7 @@ Below are several deployment options (development, Docker, and a simple producti
 		 - Frontend: http://localhost:3000
 	 - Notes:
 		 - `./storage` is mounted into the backend container so outputs persist on the host.
+		 - FFmpeg is included in the backend image.
 		 - To view logs: `docker-compose logs -f backend`.
 
 3) Production (simple, using Docker + Nginx reverse proxy)
@@ -95,6 +145,7 @@ Below are several deployment options (development, Docker, and a simple producti
 		 - Proxy `/api` to the backend container at port 8000 and serve frontend static from `dist/` or proxy to the frontend container at port 3000.
 
 4) Simple non-Docker production (Uvicorn + systemd + Nginx)
+	 - Ensure FFmpeg is installed on the server (system package manager)
 	 - Build frontend and copy `dist/` to a web root (or serve via CDN).
 		 ```bash
 		 npm ci
@@ -168,7 +219,7 @@ Below are several deployment options (development, Docker, and a simple producti
 	5. Deploy. Coolify will build the image and run the container (it will proxy the app for you).
 
 	Notes about `ffmpeg` and system deps:
-	- If your watermarking uses `ffmpeg` (likely), ensure the backend image installs `ffmpeg` (e.g., `apt-get install -y ffmpeg`) — add it to `backend/Dockerfile` before `pip install` or use a base image with ffmpeg included.
+	- If your watermarking uses `ffmpeg` (required), ensure the backend image installs `ffmpeg` (e.g., `apt-get install -y ffmpeg`) — add it to `backend/Dockerfile` before `pip install` or use a base image with ffmpeg included.
 
 	After both apps are deployed
 	- Set `VITE_API_URL` in the frontend app to the backend URL exposed by Coolify (or a custom domain). Re-deploy frontend so the built bundle contains the correct API URL.
