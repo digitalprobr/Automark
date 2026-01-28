@@ -225,54 +225,54 @@ export default function App() {
         <div className="grid gap-8 lg:grid-cols-2">
           <div className="space-y-6">
             <div className="rounded-2xl border border-slate-800/50 bg-gradient-to-br from-cyan-500/10 via-slate-900/40 to-blue-500/10 backdrop-blur-xl p-6 shadow-2xl">
-              <h3 className="mb-4 text-lg font-bold">Processing Queue</h3>
-              <div className="mb-6 grid grid-cols-3 gap-3">
-                <div className="rounded-xl bg-slate-950/80 p-4 text-center border border-slate-800">
-                  <div className="mb-2 text-2xl font-bold text-yellow-400">{queuedCount}</div>
-                  <div className="text-xs text-slate-400 flex items-center justify-center gap-1">
-                    <Clock className="h-3 w-3" />Queued
+                <h3 className="mb-4 text-lg font-bold">Processing Queue</h3>
+                <div className="mb-6 grid grid-cols-3 gap-3">
+                  <div className="rounded-xl bg-slate-950/80 p-4 text-center border border-slate-800">
+                    <div className="mb-2 text-2xl font-bold text-yellow-400">{queuedCount}</div>
+                    <div className="text-xs text-slate-400 flex items-center justify-center gap-1">
+                      <Clock className="h-3 w-3" />Queued
+                    </div>
+                  </div>
+                  <div className="rounded-xl bg-slate-950/80 p-4 text-center border border-slate-800">
+                    <div className="mb-2 text-2xl font-bold text-blue-400">{processingCount}</div>
+                    <div className="text-xs text-slate-400 flex items-center justify-center gap-1">
+                      <Loader className="h-3 w-3" />Processing
+                    </div>
+                  </div>
+                  <div className="rounded-xl bg-slate-950/80 border border-slate-800 overflow-hidden">
+                    <label className="group relative flex cursor-pointer flex-col items-center justify-center h-full p-4 transition hover:bg-slate-900/50">
+                      {logo ? (
+                        <div className="flex flex-col items-center gap-2">
+                          {previewLogoUrl ? (
+                            <img src={previewLogoUrl} alt="Logo preview" className="h-16 w-16 object-contain rounded-lg border border-slate-700" />
+                          ) : (
+                            <ImageIcon className="h-8 w-8 text-cyan-400" />
+                          )}
+                          <span className="text-xs text-slate-300 truncate max-w-full px-2">{logo.name}</span>
+                          <span className="text-xs text-slate-500">{(logo.size / 1024).toFixed(1)} KB</span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center gap-2">
+                          <ImageIcon className="h-8 w-8 text-slate-600 group-hover:text-cyan-400 transition" />
+                          <span className="text-xs font-semibold text-slate-400 group-hover:text-cyan-400 transition text-center">Click to select logo</span>
+                          <span className="text-xs text-slate-600">PNG recommended</span>
+                        </div>
+                      )}
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => setLogo(e.target.files?.[0] || null)} />
+                    </label>
                   </div>
                 </div>
-                <div className="rounded-xl bg-slate-950/80 p-4 text-center border border-slate-800">
-                  <div className="mb-2 text-2xl font-bold text-blue-400">{processingCount}</div>
-                  <div className="text-xs text-slate-400 flex items-center justify-center gap-1">
-                    <Loader className="h-3 w-3 animate-spin" />Processing
-                  </div>
-                </div>
-                <div className="rounded-xl bg-slate-950/80 border border-slate-800 overflow-hidden">
-                  <label className="group relative flex cursor-pointer flex-col items-center justify-center h-full p-4 transition hover:bg-slate-900/50">
-                    {logo ? (
-                      <div className="flex flex-col items-center gap-2">
-                        {previewLogoUrl ? (
-                          <img src={previewLogoUrl} alt="Logo preview" className="h-16 w-16 object-contain rounded-lg border border-slate-700" />
-                        ) : (
-                          <ImageIcon className="h-8 w-8 text-cyan-400" />
-                        )}
-                        <span className="text-xs text-slate-300 truncate max-w-full px-2">{logo.name}</span>
-                        <span className="text-xs text-slate-500">{(logo.size / 1024).toFixed(1)} KB</span>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center gap-2">
-                        <ImageIcon className="h-8 w-8 text-slate-600 group-hover:text-cyan-400 transition" />
-                        <span className="text-xs font-semibold text-slate-400 group-hover:text-cyan-400 transition text-center">Click to select logo</span>
-                        <span className="text-xs text-slate-600">PNG recommended</span>
-                      </div>
-                    )}
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => setLogo(e.target.files?.[0] || null)} />
-                  </label>
-                </div>
-              </div>
-              <button onClick={handleSubmit} disabled={!canSubmit || isSubmitting} className="w-full rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-4 text-base font-bold text-white shadow-lg shadow-cyan-500/30 transition hover:shadow-cyan-500/50 disabled:cursor-not-allowed disabled:from-slate-700 disabled:to-slate-700 disabled:shadow-none disabled:text-slate-400">
-                {isSubmitting ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <Loader className="h-5 w-5 animate-spin" />Uploading...
-                  </span>
-                ) : (
-                  <span className="flex items-center justify-center gap-2">
-                    <Play className="h-5 w-5" />Start Processing {files.length > 0 && `(${files.length} videos)`}
-                  </span>
-                )}
-              </button>
+                <button onClick={handleSubmit} disabled={!canSubmit || isSubmitting} className="w-full rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-4 text-base font-bold text-white shadow-lg shadow-cyan-500/30 transition hover:shadow-cyan-500/50 disabled:cursor-not-allowed disabled:from-slate-700 disabled:to-slate-700 disabled:shadow-none disabled:text-slate-400">
+                  {isSubmitting ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader className="h-5 w-5 animate-spin" />Uploading...
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-2">
+                      <Play className="h-5 w-5" />Start Processing {files.length > 0 && `(${files.length} videos)`}
+                    </span>
+                  )}
+                </button>
             </div>
 
             <div className="rounded-2xl border border-slate-800/50 bg-slate-900/40 backdrop-blur-xl p-6 shadow-2xl">
@@ -334,7 +334,7 @@ export default function App() {
           </div>
 
           <div className="space-y-6">
-            <div className="sticky top-8 rounded-2xl border border-slate-800/50 bg-slate-900/40 backdrop-blur-xl p-6 shadow-2xl">
+            <div className="sticky top-8 rounded-2xl border-2 border-cyan-500 bg-cyan-500/10 backdrop-blur-xl p-6 shadow-2xl shadow-cyan-500/20">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-xl font-bold flex items-center gap-2">
                   <Play className="h-5 w-5 text-cyan-400" />
